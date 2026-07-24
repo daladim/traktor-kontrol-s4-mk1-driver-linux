@@ -38,10 +38,11 @@ TraktorKontrolS4mk1.init = function(id, debugging) {
             midi.sendShortMsg(0xB0 + chan, i, 0x00);
         }
     }*/
-    engine.makeConnection("[Channel1]", 'VuMeter', TraktorKontrolS4mk1.vuCallback);
-    engine.makeConnection("[Channel2]", 'VuMeter', TraktorKontrolS4mk1.vuCallback2);
-    engine.makeConnection("[Channel3]", 'VuMeter', TraktorKontrolS4mk1.vuCallback3);
-    engine.makeConnection("[Channel4]", 'VuMeter', TraktorKontrolS4mk1.vuCallback4);
+    // Disabled: continuous VU feedback can flood Mixxx's MIDI/logging path.
+    // engine.makeConnection("[Channel1]", 'VuMeter', TraktorKontrolS4mk1.vuCallback);
+    // engine.makeConnection("[Channel2]", 'VuMeter', TraktorKontrolS4mk1.vuCallback2);
+    // engine.makeConnection("[Channel3]", 'VuMeter', TraktorKontrolS4mk1.vuCallback3);
+    // engine.makeConnection("[Channel4]", 'VuMeter', TraktorKontrolS4mk1.vuCallback4);
 
 
     // Set gain knobs to center value
@@ -188,10 +189,20 @@ TraktorKontrolS4mk1.toggleRecord = function(channel, control, value, status, gro
 }
 
 TraktorKontrolS4mk1.rate = function(channel, control, value, status, group) {
-    var rateSkip = 0.0;
-    if (value < 64) rateSkip = (value - 64) / 64;
-    else rateSkip = (value - 64) / 63;
-    engine.setValue(group, 'rate', rateSkip);
+    var rate = 0.0;
+    var rateRange = engine.getValue(group, 'rateRange');
+    var fileBpm = engine.getValue(group, 'file_bpm');
+    if (rateRange > 0 && fileBpm > 0) {
+        // A 7-bit MIDI fader has 128 positions. Map each position to exactly
+        // 0.1 BPM, centered at the track's analyzed BPM, rather than scaling
+        // the fader across the pitch range and skipping tenths.
+        var targetBpm = fileBpm + (value - 64) * 0.1;
+        var minBpm = fileBpm * (1 - rateRange);
+        var maxBpm = fileBpm * (1 + rateRange);
+        targetBpm = Math.max(minBpm, Math.min(maxBpm, targetBpm));
+        rate = (targetBpm / fileBpm - 1) / rateRange;
+    }
+    engine.setValue(group, 'rate', rate);
 
     if (value % 2 && value > 64) midi.sendShortMsg(0xB0 + channel, 0x06, true);
     else midi.sendShortMsg(0xB0 + channel, 0x06, false);

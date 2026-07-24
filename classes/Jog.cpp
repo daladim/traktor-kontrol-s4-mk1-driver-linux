@@ -38,9 +38,11 @@ int Jog::handle_event(RtMidiOut *midi_out, bool shift_ch1, bool shift_ch2, bool 
     int midi_value = 0;
 
     if (midi_event->controller_type == "JOG_TOUCH"){
-      if (value >= 3050){
-        midi_value = 0x7f;
-      }
+      const int configured_threshold =
+          config_helper->get_int_value("jog_touch_threshold");
+      const int touch_threshold =
+          configured_threshold > 0 ? configured_threshold : 3500;
+      midi_value = value >= touch_threshold ? 0x7f : 0x00;
     }
     else{
       midi_value = get_value_jog();
