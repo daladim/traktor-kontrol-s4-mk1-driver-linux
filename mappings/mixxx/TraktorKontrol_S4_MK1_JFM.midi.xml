@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='utf-8'?>
-<MixxxControllerPreset mixxxVersion="2.3.0" schemaVersion="1">
+<MixxxControllerPreset schemaVersion="1" mixxxVersion="2.3.0">
     <info>
         <name>TraktorKontrol_S4_MK1_JFM</name>
         <author>Javier Fonseca</author>
     </info>
     <controller id="Traktor-Kontrol-S4-mk1">
         <scriptfiles>
-            <file functionprefix="TraktorKontrolS4mk1" filename="Traktor-Kontrol-S4-mk1.js"/>
+            <file filename="Traktor-Kontrol-S4-mk1.js" functionprefix="TraktorKontrolS4mk1"/>
         </scriptfiles>
         <controls>
             <control>
@@ -300,13 +300,13 @@
                 </options>
             </control>
             <control>
-                <group>[Library]</group>
-                <key>TraktorKontrolS4mk1.MoveFocusForward</key>
-                <description>Equivalent to pressing Tab on keyboard</description>
+                <group>[Recording]</group>
+                <key>toggle_recording</key>
+                <description>MIDI Learned from 2 messages.</description>
                 <status>0xB4</status>
                 <midino>0x07</midino>
                 <options>
-                    <script-binding/>
+                    <normal/>
                 </options>
             </control>
             <control>
@@ -400,13 +400,13 @@
                 </options>
             </control>
             <control>
-                <group>[Master]</group>
-                <key>TraktorKontrolS4mk1.maximize_library</key>
-                <description>Maximize library and change CUE button function to load track</description>
+                <group>[Skin]</group>
+                <key>show_maximized_library</key>
+                <description>MIDI Learned from 2 messages.</description>
                 <status>0xB4</status>
                 <midino>0x09</midino>
                 <options>
-                    <script-binding/>
+                    <normal/>
                 </options>
             </control>
             <control>
@@ -1953,13 +1953,13 @@
                 </options>
             </control>
             <control>
-                <group>[Recording]</group>
-                <key>TraktorKontrolS4mk1.toggleRecord</key>
-                <description>Toggle Recording</description>
+                <group>[Library]</group>
+                <key>MoveFocusForward</key>
+                <description>MIDI Learned from 2 messages.</description>
                 <status>0xB4</status>
                 <midino>0x47</midino>
                 <options>
-                    <script-binding/>
+                    <normal/>
                 </options>
             </control>
             <control>
