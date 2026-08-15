@@ -4,7 +4,7 @@
   "midi_client_name": "TRAKTORS4",
   "midi_virtual_port_name": "Traktor Kontrol S4 MK1",
   "midi_queue_size_limit": 50,
-  "jog_wheel_sensitivity": 10,
+  "jog_wheel_sensitivity": 2,
   "jog_touch_threshold": 3500,
   "traktor_s4_log_file": "/tmp/traktor_s4/traktor_kontrol_s4_logger.log",
   "traktor_s4_logger_name": "traktor_kontrol_s4_logger",

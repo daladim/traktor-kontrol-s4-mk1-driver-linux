@@ -16,11 +16,11 @@ var jogTouchReleaseTimers = {};
 var jogNudgeRemainders = {};
 // These values are calibration-dependent. See docs/jog-wheel-mapping-research.md
 // before changing the scratch resolution or RPM.
-var jogScratchTicksPerRevolution = 512;
-var jogScratchRpm = 8;
+var jogScratchTicksPerRevolution = 640;
+var jogScratchRpm = 33 + 1 / 3;
 var jogScratchAlpha = 1.0 / 8;
 var jogScratchBeta = jogScratchAlpha / 32;
-var jogTouchReleaseTimeoutMs = 100;
+var jogTouchReleaseTimeoutMs = 750;
 var jogNudgeTicksPerStep = 8;
 const beatJumps = [0.03125, 0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64] //Available beat loop
 
