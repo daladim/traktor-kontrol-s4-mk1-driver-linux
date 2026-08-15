@@ -28,7 +28,7 @@ class Knob
     int value;
     int counter;
     int prev_control_value;
-    int updated;
+    std::chrono::steady_clock::time_point updated;
     static map<int, Knob *> knob_mapping;
     int handle_event(RtMidiOut *midi_out_port,
                      bool shift_ch1,

@@ -106,6 +106,7 @@ void EvDevHelper::check_evdev_status() {
       spdlog::get(config_helper->get_string_value("traktor_s4_logger_name"));
   const auto retry_delay = chrono::microseconds(config_helper->get_int_value(
       "evdev_helper_time_to_wait_in_microseconds"));
+  bool waiting_for_controller = false;
 
   while (true) {
     struct libevdev *dev = nullptr;
@@ -125,9 +126,12 @@ void EvDevHelper::check_evdev_status() {
       libevdev_free(dev);
       close(fd);
     }
-    logger->info(
-        "[EvDevHelper::check_evdev_status] Controller unavailable; "
-        "retrying connection");
+    if (!waiting_for_controller) {
+      logger->info(
+          "[EvDevHelper::check_evdev_status] Controller unavailable; "
+          "waiting for connection");
+      waiting_for_controller = true;
+    }
     this_thread::sleep_for(retry_delay);
   }
 }
@@ -138,31 +142,41 @@ void EvDevHelper::read_events_from_device(RtMidiOut *pMidiOut) {
   logger->debug(
       "[EvDevHelper::read_events_from_device] Reading events from {0}",
       config_helper->get_string_value("alsa_device_name"));
+  bool waiting_for_evdev = false;
+  bool waiting_for_alsa = false;
   while (true) {
     struct libevdev *dev = nullptr;
     int rc = 1;
     tie(rc, dev) = get_traktor_controller_device();
     if (rc < 0) {
-      logger->info(
-          "[EvDevHelper::read_events_from_device] Controller "
-          "disconnected; waiting for reconnection");
+      if (!waiting_for_evdev) {
+        logger->info(
+            "[EvDevHelper::read_events_from_device] Controller "
+            "disconnected; waiting for reconnection");
+        waiting_for_evdev = true;
+      }
       this_thread::sleep_for(chrono::microseconds(config_helper->get_int_value(
           "evdev_helper_time_to_wait_in_microseconds")));
       continue;
     }
+    waiting_for_evdev = false;
 
     traktor_device_id_ = AlsaHelper::get_traktor_device(config_helper);
     if (traktor_device_id_ == -1) {
       const int fd = libevdev_get_fd(dev);
       libevdev_free(dev);
       close(fd);
-      logger->info(
-          "[EvDevHelper::read_events_from_device] ALSA controller "
-          "device unavailable; waiting for reconnection");
+      if (!waiting_for_alsa) {
+        logger->info(
+            "[EvDevHelper::read_events_from_device] ALSA controller "
+            "device unavailable; waiting for reconnection");
+        waiting_for_alsa = true;
+      }
       this_thread::sleep_for(chrono::microseconds(config_helper->get_int_value(
           "evdev_helper_time_to_wait_in_microseconds")));
       continue;
     }
+    waiting_for_alsa = false;
 
     const int fd = libevdev_get_fd(dev);
     logger->info("[EvDevHelper::read_events_from_device] Controller connected");

@@ -34,7 +34,7 @@ public:
     unsigned char tgl_on_shf_on_status_byte;
     unsigned char tgl_on_shf_on_channel_byte;
     static map<int, MidiEventOut *> midi_mapping;
-    static int get_time();
+    static std::chrono::steady_clock::time_point get_time();
 };
 
 #endif //TRAKTOR_KONTROL_S4_MK1_DRIVER_LINUX_RTMIDIEVENT_H

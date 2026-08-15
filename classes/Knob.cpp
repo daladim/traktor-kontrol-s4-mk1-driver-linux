@@ -47,7 +47,8 @@ Knob::Knob(int in_code, string in_name, int in_value){
   code = in_code;
   name = in_name;
   value = in_value;
-  counter = prev_control_value = updated = -1;
+  counter = prev_control_value = -1;
+  updated = {};
 }
 
 int Knob::handle_event(RtMidiOut *midi_out, bool shift_ch1, bool shift_ch2, bool toggle_ac, bool toggle_bd, ConfigHelper *config_helper) {
@@ -142,7 +143,7 @@ int Knob::get_value_gain_rot() {
   }
   prev_control_value = value;
 
-  if ((MidiEventOut::get_time() - updated) < 5){
+  if ((MidiEventOut::get_time() - updated) < chrono::milliseconds(5)){
     counter += diff;
     return -1;
   }
@@ -179,7 +180,7 @@ int Knob::get_value_rot() {
 
   prev_control_value = value;
 
-  if ((MidiEventOut::get_time() - updated) < 5){
+  if ((MidiEventOut::get_time() - updated) < chrono::milliseconds(5)){
     counter += diff;
     return -1;
   }

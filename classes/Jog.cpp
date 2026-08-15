@@ -8,7 +8,8 @@ map<int, Jog *> Jog::jog_mapping = {
 };
 
 Jog::Jog(){
-  code = value = counter = updated = -1;
+  code = value = counter = -1;
+  updated = {};
   sensitivity = 5;
   prev_control_value = -1000;
   name = "";
@@ -20,7 +21,7 @@ Jog::Jog(int in_code, string in_name, int in_value){
   value = in_value;
   sensitivity = 5;
   counter = 0;
-  updated = 0;
+  updated = {};
   prev_control_value = -1000;
 }
 
@@ -35,53 +36,50 @@ int Jog::handle_event(RtMidiOut *midi_out, bool shift_ch1, bool shift_ch2, bool 
     logger->debug("[Jog::handle_event] Jog Wheel {0} with Code: {1} and Value {2}", name, code, value);
     logger->debug("[Jog::handle_event] Sending to MIDI with: Name: {0} Controller Type: {1} Status: {2} Channel: {3}", midi_event->name, midi_event->controller_type, midi_event->status_byte, midi_event->channel_byte);
     logger->debug("[Jog::handle_event] Creating message...");
-    int midi_value = 0;
+    vector<int> midi_values;
 
     if (midi_event->controller_type == "JOG_TOUCH"){
       const int configured_threshold =
           config_helper->get_int_value("jog_touch_threshold");
       const int touch_threshold =
           configured_threshold > 0 ? configured_threshold : 3500;
-      midi_value = value >= touch_threshold ? 0x7f : 0x00;
+      midi_values.push_back(value >= touch_threshold ? 0x7f : 0x00);
     }
     else{
-      midi_value = get_value_jog();
+      midi_values = get_values_jog();
     }
 
-    if (midi_value == -1000){
-      return 0;
-    }
-    if ((midi_event->controller_type == "JOG_ROT") && (midi_value == 0)) {
-      return 0;
-    }
+    for (int midi_value : midi_values) {
+      auto message = UtilsHelper::create_message(shift_ch1, shift_ch2, toggle_ac,
+                                                 toggle_bd, midi_event,
+                                                 (unsigned char)midi_value);
 
-    auto message = UtilsHelper::create_message(shift_ch1, shift_ch2, toggle_ac, toggle_bd, midi_event, (unsigned char)midi_value);
+      logger->debug("[Jog::handle_event] Message Channel: {0} Status: {1} Value: {2}", message[0], message[1], message[2]);
+      logger->debug("[Jog::handle_event] Message created!");
+      logger->debug("[Jog::handle_event] Sending to MIDI out port....");
 
-    logger->debug("[Jog::handle_event] Message Channel: {0} Status: {1} Value: {2}", message[0], message[1], message[2]);
-    logger->debug("[Jog::handle_event] Message created!");
-    logger->debug("[Jog::handle_event] Sending to MIDI out port....");
-
-    try{
-      midi_out->sendMessage(&message);
+      try{
+        midi_out->sendMessage(&message);
+      }
+      catch (exception &e){
+        logger->error("[Jog::handle_event] Error sending message to MIDI out port: {0}", e.what());
+        return -1;
+      }
+      logger->debug("[Jog::handle_event] Sent!");
     }
-    catch (exception &e){
-      logger->error("[Jog::handle_event] Error sending message to MIDI out port: {0}", e.what());
-      return -1;
-    }
-    logger->debug("[Jog::handle_event] Sent!");
   }
 
   return 0;
 }
 
-int Jog::get_value_jog(){
-  int diff = -1;
+vector<int> Jog::get_values_jog(){
   if (prev_control_value == -1000){
     prev_control_value = value;
     updated = MidiEventOut::get_time();
-    return -1000;
+    return {};
   }
 
+  int diff = 0;
   if (value <= 255 && prev_control_value >= 767){
     diff = 1024 - prev_control_value + value;
   }
@@ -93,27 +91,31 @@ int Jog::get_value_jog(){
   }
 
   prev_control_value = value;
-
-  if ((MidiEventOut::get_time() - updated) < sensitivity){
+  const auto now = MidiEventOut::get_time();
+  if ((now - updated) < chrono::milliseconds(sensitivity)){
     counter += diff;
-    return -1000;
+    return {};
   }
-  else{
-    int midi_value = counter + diff;
 
-    counter = 0;
-    updated = MidiEventOut::get_time();
+  int midi_value = counter + diff;
+  counter = 0;
+  updated = now;
 
-    if ((midi_value >= -64) && (midi_value < 0)){
-      midi_value = 128 + midi_value;
-    }
-    else if(midi_value < -64){
-      midi_value = 64;
-    }
-    else if (midi_value >= 63){
-      midi_value = 63;
-    }
-
-    return midi_value;
+  vector<int> midi_values;
+  while (midi_value > 63) {
+    midi_values.push_back(63);
+    midi_value -= 63;
   }
+  while (midi_value < -64) {
+    midi_values.push_back(64);
+    midi_value += 64;
+  }
+  if (midi_value > 0) {
+    midi_values.push_back(midi_value);
+  }
+  else if (midi_value < 0) {
+    midi_values.push_back(128 + midi_value);
+  }
+
+  return midi_values;
 }

@@ -46,5 +46,7 @@ find_path(EVDEV_INCLUDE_DIR libevdev/libevdev.h
           HINTS ${PC_EVDEV_INCLUDE_DIRS} ${PC_EVDEV_INCLUDEDIR})
 find_library(EVDEV_LIBRARY
         NAMES evdev libevdev)
+find_library(DB_LIBRARY
+        NAMES db-5.3 REQUIRED)
 include_directories(${EVDEV_INCLUDE_DIR})
-target_link_libraries(traktor_kontrol_s4_mk1_driver_linux rtmidi ${EVDEV_LIBRARY} libasound.so.2 libpthread.so.0)
+target_link_libraries(traktor_kontrol_s4_mk1_driver_linux rtmidi ${EVDEV_LIBRARY} libasound.so.2 libpthread.so.0 jack ${DB_LIBRARY})

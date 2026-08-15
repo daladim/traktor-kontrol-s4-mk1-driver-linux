@@ -14,8 +14,13 @@ var deck_ac_current = "A";
 var deck_bd_current = "B";
 var jogTouchReleaseTimers = {};
 var jogNudgeRemainders = {};
-// Tune scratching independently from the non-touch pitch-bend nudge below.
+// These values are calibration-dependent. See docs/jog-wheel-mapping-research.md
+// before changing the scratch resolution or RPM.
 var jogScratchTicksPerRevolution = 512;
+var jogScratchRpm = 8;
+var jogScratchAlpha = 1.0 / 8;
+var jogScratchBeta = jogScratchAlpha / 32;
+var jogTouchReleaseTimeoutMs = 100;
 var jogNudgeTicksPerStep = 8;
 const beatJumps = [0.03125, 0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64] //Available beat loop
 
@@ -176,10 +181,16 @@ TraktorKontrolS4mk1.changeDeckBD = function (channel, control, value, status, gr
   }
 }
 
+TraktorKontrolS4mk1.decodeRelative = function (value) {
+  return value < 64 ? value : value - 128;
+}
+
 TraktorKontrolS4mk1.fineRate = function (channel, control, value, status, group) {
+  var delta = TraktorKontrolS4mk1.decodeRelative(value);
+  if (delta === 0) return;
+
   var actualRate = engine.getValue(group, 'rate');
-  if (value > 1) engine.setValue(group, 'rate', actualRate + 0.001);
-  else engine.setValue(group, 'rate', actualRate - 0.001);
+  engine.setValue(group, 'rate', actualRate + (delta > 0 ? 0.001 : -0.001));
 }
 
 TraktorKontrolS4mk1.toggleRecord = function (channel, control, value, status, group) {
@@ -473,18 +484,18 @@ TraktorKontrolS4mk1.wheelTouch = function (channel, control, value, status, grou
 
   if (value > 0) { // Touch down
     if (!engine.isScratching(deckNumber)) {
-      var alpha = 1.0 / 8;
-      var beta = alpha / 32;
-      engine.scratchEnable(deckNumber, jogScratchTicksPerRevolution, 8,
-        alpha, beta);
+      jogNudgeRemainders[deckNumber] = 0;
+      engine.scratchEnable(deckNumber, jogScratchTicksPerRevolution,
+        jogScratchRpm, jogScratchAlpha, jogScratchBeta);
     }
 
     // The S4's touch sensor sends repeated touch values but no release.
     // Consider the touch released once that stream has been quiet briefly.
-    jogTouchReleaseTimers[deckNumber] = engine.beginTimer(100, function () {
-      engine.scratchDisable(deckNumber);
-      delete jogTouchReleaseTimers[deckNumber];
-    }, true);
+    jogTouchReleaseTimers[deckNumber] = engine.beginTimer(
+      jogTouchReleaseTimeoutMs, function () {
+        engine.scratchDisable(deckNumber);
+        delete jogTouchReleaseTimers[deckNumber];
+      }, true);
   } else { // Touch up
     engine.scratchDisable(deckNumber);
   }
@@ -492,22 +503,7 @@ TraktorKontrolS4mk1.wheelTouch = function (channel, control, value, status, grou
 
 // The wheel that actually controls the scratching
 TraktorKontrolS4mk1.wheelTurn = function (channel, control, value, status, group) {
-  // --- Choose only one of the following!
-
-  // A: For a control that centers on 0:
-  var newValue;
-  if (value < 64) {
-    newValue = value;
-  } else {
-    newValue = value - 128;
-  }
-
-  // B: For a control that centers on 0x40 (64):
-  //var newValue = value - 64;
-
-  // --- End choice
-
-  // In either case, register the movement
+  var newValue = TraktorKontrolS4mk1.decodeRelative(value);
   var deckNumber = script.deckFromGroup(group);
   if (engine.isScratching(deckNumber)) {
     engine.scratchTick(deckNumber, newValue); // Scratch!
@@ -526,4 +522,14 @@ TraktorKontrolS4mk1.wheelTurn = function (channel, control, value, status, group
       engine.setValue(group, 'jog', nudgeValue); // Pitch bend
     }
   }
+}
+
+TraktorKontrolS4mk1.shutdown = function () {
+  for (var deckNumber = 1; deckNumber <= 4; deckNumber++) {
+    var timer = jogTouchReleaseTimers[deckNumber];
+    if (timer) engine.stopTimer(timer);
+    engine.scratchDisable(deckNumber);
+  }
+  jogTouchReleaseTimers = {};
+  jogNudgeRemainders = {};
 }

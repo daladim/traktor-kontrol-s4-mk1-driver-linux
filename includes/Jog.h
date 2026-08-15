@@ -2,6 +2,7 @@
 #define TRAKTOR_KONTROL_S4_MK1_DRIVER_LINUX_JOG_H
 
 // --------------------------
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -29,7 +30,7 @@ class Jog
     int counter;
     int prev_control_value;
     int sensitivity;
-    int updated;
+    std::chrono::steady_clock::time_point updated;
     int handle_event(RtMidiOut *midi_out_port,
                      bool shift_ch1,
                      bool shift_ch2,
@@ -37,7 +38,7 @@ class Jog
                      bool toggle_bd,
                      ConfigHelper *config);
     static map<int, Jog *> jog_mapping;
-    int get_value_jog();
+    vector<int> get_values_jog();
 };
 
 #endif //TRAKTOR_KONTROL_S4_MK1_DRIVER_LINUX_JOG_H
