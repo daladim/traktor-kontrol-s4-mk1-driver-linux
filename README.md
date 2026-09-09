@@ -53,6 +53,67 @@ If all goes well, you should now be able to start the application like so:
 ```
 
 ## Installation
-Installation process is pending, currently you only can download or clone the repo and compile with CMake (>3.16)
+After building, the driver can be run manually from the `build` directory or managed as a systemd user service. A user service is recommended when Mixxx runs in the same desktop session because it runs with the logged-in user's ALSA and evdev access.
+
+### systemd user service
+
+1. Set `REPO_DIR` to the absolute path of your checkout and create the user-unit directory:
+
+```bash
+REPO_DIR="$HOME/path/to/traktor-kontrol-s4-mk1-driver-linux"
+mkdir -p "$HOME/.config/systemd/user"
+```
+
+2. Create `~/.config/systemd/user/traktor-kontrol-s4.service` using the checkout path:
+
+```bash
+cat > "$HOME/.config/systemd/user/traktor-kontrol-s4.service" <<EOF
+[Unit]
+Description=Traktor Kontrol S4 Mk1 driver
+
+[Service]
+Type=simple
+WorkingDirectory=${REPO_DIR}/build
+ExecStart=${REPO_DIR}/build/traktor_kontrol_s4_mk1_driver_linux --logMode console --configFile ${REPO_DIR}/config.json
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
+EOF
+```
+
+`WorkingDirectory` preserves the normal build-directory invocation. The explicit `--configFile` path prevents the service from depending on a relative config-file path.
+
+3. Validate, enable, and start the service:
+
+```bash
+systemd-analyze verify "$HOME/.config/systemd/user/traktor-kontrol-s4.service"
+systemctl --user daemon-reload
+systemctl --user enable --now traktor-kontrol-s4.service
+```
+
+4. Check its status and follow its console output through the journal:
+
+```bash
+systemctl --user status traktor-kontrol-s4.service
+journalctl --user -u traktor-kontrol-s4.service -f
+```
+
+The service starts when the user session starts and stops when the user logs out. To keep it running without an active login session, enable lingering for the user:
+
+```bash
+loginctl enable-linger "$USER"
+```
+
+To stop and remove the service:
+
+```bash
+systemctl --user disable --now traktor-kontrol-s4.service
+rm "$HOME/.config/systemd/user/traktor-kontrol-s4.service"
+systemctl --user daemon-reload
+```
 
 ## IN PROCESS
