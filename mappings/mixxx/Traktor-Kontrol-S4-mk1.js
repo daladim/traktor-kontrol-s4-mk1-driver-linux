@@ -73,14 +73,32 @@ TraktorKontrolS4mk1.init = function (id, debugging) {
   //midi.sendShortMsg(0xB4, 0x51, 100);
 };
 
-TraktorKontrolS4mk1.enableBeatLoop = function (channel, control, value, status, group) {
-  if (value <= 0) return;
-  const actualBeatLoop = engine.getValue(group, 'beatloop_size');
-  if (engine.getValue(group, "loop_enabled")) {
-    engine.setValue(group, "beatloop_" + actualBeatLoop + "_toggle", true);
-  } else {
-    engine.setValue(group, "beatloop_" + actualBeatLoop + "_toggle", true);
-  }
+
+// Left loop encoder ("move"/"active")
+TraktorKontrolS4mk1.recallLoop = function(channel, control, value, status, group) {
+    if (value <= 0) return;
+    const currentlyLooping = engine.getValue(group, "loop_enabled");
+    if (currentlyLooping) {
+        // Toggles the loop OFF; playback continues at the current position
+        engine.setValue(group, "reloop_toggle", true);
+    } else {
+        engine.setValue(group, "reloop_toggle", true); // jumps to loop start, re-enables
+    }
+    // if already looping, do nothing (or use this button for something else)
+};
+
+// Right loop encoder ("size"/"set")
+TraktorKontrolS4mk1.setLoop = function(channel, control, value, status, group) {
+    if (value <= 0) return; // ignore button release
+
+    const currentlyLooping = engine.getValue(group, "loop_enabled");
+    if (currentlyLooping) {
+        // Toggles the loop OFF; playback continues at the current position
+        engine.setValue(group, "reloop_toggle", true);
+    } else {
+        // Press the beatloop_activate button
+        engine.setValue(group, "beatloop_activate", true);
+    }
 }
 
 TraktorKontrolS4mk1.manageSampler = function (channel, control, value, status, group) {

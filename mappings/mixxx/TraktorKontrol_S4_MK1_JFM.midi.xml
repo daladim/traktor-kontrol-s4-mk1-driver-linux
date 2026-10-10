@@ -821,7 +821,7 @@
             </control>
             <control>
                 <group>[Channel1]</group>
-                <key>TraktorKontrolS4mk1.enableBeatLoop</key>
+                <key>TraktorKontrolS4mk1.setLoop</key>
                 <description>MIDI Learned from 2 messages.</description>
                 <status>0xB0</status>
                 <midino>0x16</midino>
@@ -830,8 +830,18 @@
                 </options>
             </control>
             <control>
+                <group>[Channel1]</group>
+                <key>TraktorKontrolS4mk1.recallLoop</key>
+                <description>MIDI Learned from 2 messages.</description>
+                <status>0xB0</status>
+                <midino>0x19</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
                 <group>[Channel2]</group>
-                <key>TraktorKontrolS4mk1.enableBeatLoop</key>
+                <key>TraktorKontrolS4mk1.setLoop</key>
                 <description>MIDI Learned from 2 messages.</description>
                 <status>0xB1</status>
                 <midino>0x16</midino>
@@ -840,8 +850,18 @@
                 </options>
             </control>
             <control>
+                <group>[Channel2]</group>
+                <key>TraktorKontrolS4mk1.recallLoop</key>
+                <description>MIDI Learned from 2 messages.</description>
+                <status>0xB1</status>
+                <midino>0x19</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
                 <group>[Channel3]</group>
-                <key>TraktorKontrolS4mk1.enableBeatLoop</key>
+                <key>TraktorKontrolS4mk1.setLoop</key>
                 <description>MIDI Learned from 2 messages.</description>
                 <status>0xB2</status>
                 <midino>0x16</midino>
@@ -850,11 +870,31 @@
                 </options>
             </control>
             <control>
+                <group>[Channel3]</group>
+                <key>TraktorKontrolS4mk1.recallLoop</key>
+                <description>MIDI Learned from 2 messages.</description>
+                <status>0xB2</status>
+                <midino>0x19</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
                 <group>[Channel4]</group>
-                <key>TraktorKontrolS4mk1.enableBeatLoop</key>
+                <key>TraktorKontrolS4mk1.setLoop</key>
                 <description>MIDI Learned from 2 messages.</description>
                 <status>0xB3</status>
                 <midino>0x16</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel4]</group>
+                <key>TraktorKontrolS4mk1.recallLoop</key>
+                <description>MIDI Learned from 2 messages.</description>
+                <status>0xB3</status>
+                <midino>0x19</midino>
                 <options>
                     <script-binding/>
                 </options>
