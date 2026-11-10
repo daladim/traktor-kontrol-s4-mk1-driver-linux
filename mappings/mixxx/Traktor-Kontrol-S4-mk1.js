@@ -385,7 +385,7 @@ TraktorKontrolS4mk1.PFL = function (channel, control, value, status, group) {
   // assign PFL[Channel] actual status (on/off)
   var pfl = engine.getParameter(group, "pfl");
   // Si está activa "Big Library" (o presionado el boton Browse)
-  // al presionar el botón pfl ("CUE" en Kontrol S4) 
+  // al presionar el botón pfl ("CUE" en Kontrol S4)
   // se carga el track seleccionado en el canal correspondiente
   if ((engine.getParameter('[Master]', 'maximize_library') || browseButtonFlag) && value) {
     engine.setValue(group, "LoadSelectedTrack", true);
