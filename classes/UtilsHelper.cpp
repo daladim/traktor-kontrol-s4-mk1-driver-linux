@@ -191,9 +191,9 @@ bool UtilsHelper::show_static_leds(unsigned char value, string control_id,
   int control_id_num = stoi(control_id);
   if ((control_id_num >= 1) && (control_id_num <= 163)){
     if (value >= 1)
-      led_writer->set_led(control_id_num, Led::ON);
+      led_writer->set_led(control_id_num, value);
     else{
-      static const std::vector<int> to_off = {160, 161, 162, 155, 156, 157, 64, 65, 51, 52, 38, 39, 25, 26, 6, 7, 10, 24, 37, 50, 63, 67, 69, 71, 73, 111, 113, 115, 117};
+      static const std::vector<int> to_off = {160, 161, 162, 155, 156, 157, 64, 65, 51, 52, 38, 39, 25, 26, 6, 7, 10, 24, 37, 50, 63, 67, 69, 71, 73, 111, 113, 115, 117, 80, 81, 124, 125};
       if (!(std::find(to_off.begin(), to_off.end(), control_id_num) != to_off.end())){
         led_writer->set_led(control_id_num, Led::MIDDLE);
       }
